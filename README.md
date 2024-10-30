@@ -1,0 +1,2 @@
+# easyTruco
+easyTruco
