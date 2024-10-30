@@ -1,0 +1,5 @@
+flask
+flask-openapi3-swagger
+Flask-SQLAlchemy
+SQLAlchemy
+SQLAlchemy-Utils
