@@ -1,8 +1,11 @@
 from flask_openapi3 import OpenAPI, Info, Tag
 from flask import request, jsonify
-from model.base import Base, Session
+from model.base import Base, Session, engine
 from model.partida import Partida
 from datetime import datetime
+
+# Cria as tabelas no banco de dados
+Base.metadata.create_all(engine)
 
 info = Info(title="EasyTruco API", version="1.0.0")
 app = OpenAPI(__name__, info=info)
