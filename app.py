@@ -4,6 +4,7 @@ from model.base import Base, Session, engine
 from model.partida import Partida
 from model.usuario import Usuario
 from datetime import datetime
+from schemas.partida import PartidaSchema
 from schemas.usuario import UsuarioSchema
 
 # Cria as tabelas no banco de dados
@@ -17,36 +18,30 @@ def hello():
     return 'Olá, Mundo!'
 
 @app.post('/criaPartida')
-def criaPartida():
-    # Dados JSON
-    dados = request.get_json()
-    
-    # Informações dos dados
-    organizador = dados.get("organizador")
-    local = dados.get("local")
-    horario_str = dados.get("horario")  # Esperando que o horário venha como string no formato 'DD-MM-YYYY HH:MM:SS'
+def criaPartida(form: PartidaSchema):
 
-    # Converte o horário
-    try:
-        horario = datetime.strptime(horario_str, '%d-%m-%Y %H:%M:%S')
-    except ValueError:
-        return jsonify({"erro": "Formato de data/hora inválido. Use DD-MM-YYYY HH:MM:SS"}), 400
-
-    # Cria uma sessão com o banco de dados
     session = Session()
 
-    # Nova instância de Partida
-    nova_partida = Partida(organizador=organizador, local=local, horario=horario)
+    organizador = form.organizador
+    local = form.local
+    horario = form.horario
+
+    if not organizador or not local or not horario:
+        session.close()
+        return jsonify({"mensagem": "Preencha todos os campos!"}), 400
     
-    # Adiciona e confirma a nova partida no banco de dados
-    session.add(nova_partida)
+    # Verifica se o horário está no passado
+    if horario < datetime.now():
+        session.close()
+        return jsonify({"mensagem": "O horário da partida deve ser no futuro!"}), 400
+
+    novaPartida = Partida(organizador=organizador, local=local, horario=horario)
+    
+    session.add(novaPartida)
     session.commit()
 
-    # Fecha a sessão
     session.close()
-
-    # Retorna uma confirmação com o ID da nova partida
-    return jsonify({"mensagem": "Partida criada com sucesso!", "id": nova_partida.id}), 201
+    return jsonify({"mensagem": "Partida criada com sucesso!", "id": novaPartida.id}), 201
 
 @app.post('/criaUsuario')
 def criaUsuario(form: UsuarioSchema):
