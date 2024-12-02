@@ -41,7 +41,7 @@ def criaUsuario():
             return jsonify({"mensagem": "Este email já está cadastrado!"}), 400
 
         if not validarSenha(senha):
-            return jsonify({"mensagem": "Senha deve ter pelo menos 8 caracteres e conter pelo menos uma letra e um número!"}), 400
+            return jsonify({"mensagem": "Senha deve ter pelo menos 8 caracteres e conter letras e números!"}), 400
 
         novoUsuario = Usuario(nome=nome, email=email, senha=senha)
 
