@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Easy Truco - Cadastro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/cadastro.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Easy Truco</h1>
+        <h2>Registre-se</h2>
+        <form id="cadastroForm" action="/cadastrar_usuario" method="post"> <!-- Atualizado -->
+            <label for="nome_completo">Nome Completo</label>
+            <input type="text" id="nome_completo" name="nome" required>
+            
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required>
+            
+            <label for="senha">Senha</label>
+            <input type="password" id="senha" name="senha" required>
+            
+            <button type="submit">Cadastrar</button>
+        </form>
+        <div id="mensagem" style="display: none;"></div>
+    </div>
+
+    <script>
+        document.getElementById('cadastroForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+
+            fetch('/cadastrar_usuario', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                const mensagemDiv = document.getElementById('mensagem');
+                mensagemDiv.style.display = "block";
+                
+                if (data.mensagem) {
+                    mensagemDiv.textContent = data.mensagem;
+                    if (data.mensagem.includes("sucesso")) {
+                        mensagemDiv.style.color = "green";
+                        setTimeout(() => {
+                            window.location.href = "/listagem_partidas";
+                        }, 1500);
+                    } else {
+                        mensagemDiv.style.color = "red";
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                const mensagemDiv = document.getElementById('mensagem');
+                mensagemDiv.style.display = "block";
+                mensagemDiv.textContent = "Ocorreu um erro. Tente novamente.";
+                mensagemDiv.style.color = "red";
+            });
+        });
+    </script>
+</body>
+</html>
