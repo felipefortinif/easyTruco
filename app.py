@@ -19,7 +19,11 @@ def hello():
 
 @app.route('/listagem_partidas')
 def listagem_partidas():
-    return 'listagem_partidas.html'
+    session = Session()
+    partidas = session.query(Partida).all()
+    session.close()
+
+    return render_template('listagem_partidas.html', partidas=partidas)
 
 @app.route('/cadastro')
 def index():
@@ -56,6 +60,10 @@ def criaUsuario():
 
     finally:
         session.close()
+
+@app.route('/cadastrar_partida')
+def cadastrar_partida():
+    return render_template('cadastrar_partida.html')
 
 @app.post('/criaPartida')
 def criaPartida(form: PartidaSchema):
