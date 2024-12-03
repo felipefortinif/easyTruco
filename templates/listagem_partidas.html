@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Easy Truco - Listagem de Partidas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/listagem_partidas.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Easy Truco</h1>
+        <h2>Listagem de Partidas</h2>
+
+        {% if partidas %}
+            <ul>
+                {% for partida in partidas %}
+                    <li>
+                        <strong>Local:</strong> {{ partida.local }}<br>
+                        <strong>Horário:</strong> {{ partida.horario }}<br>
+                        <strong>Organizador:</strong> {{ partida.organizador }}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Não há nenhuma partida disponível.</p>
+        {% endif %}
+
+        <button onclick="window.location.href='/cadastrar_partida'">Cadastrar Nova Partida</button>
+    </div>
+</body>
+</html>

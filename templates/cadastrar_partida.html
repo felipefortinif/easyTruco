@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Easy Truco - Cadastro de Partida</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/cadastrar_partida.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Easy Truco</h1>
+        <h2>Cadastro de Partida</h2>
+        <form id="cadastroPartidaForm" action="/criaPartida" method="post">
+            <label for="organizador">Organizador</label>
+            <input type="text" id="organizador" name="organizador" required>
+
+            <label for="local">Local</label>
+            <select id="local" name="local" required>
+                <option value="">Selecione um local</option>
+                <option value="Geneal">Geneal</option>
+                <option value="Bar das Freiras">Bar das Freiras</option>
+                <option value="Pilotis">Pilotis</option>
+                <option value="Vila">Vila</option>
+                <option value="Na Medida">Na Medida</option>
+                <option value="California Coffee">California Coffee</option>
+                <option value="Bosque">Bosque</option>
+            </select>
+
+            <label for="horario">Horário</label>
+            <input type="datetime-local" id="horario" name="horario" required>
+
+            <button type="submit">Cadastrar</button>
+        </form>
+        <div id="mensagem" style="display: none;"></div>
+    </div>
+
+    <script>
+        document.getElementById('cadastroPartidaForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+
+            fetch('/criaPartida', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                const mensagemDiv = document.getElementById('mensagem');
+                mensagemDiv.style.display = "block";
+                
+                if (data.mensagem) {
+                    mensagemDiv.textContent = data.mensagem;
+                    if (data.mensagem.includes("sucesso")) {
+                        mensagemDiv.style.color = "green";
+                        setTimeout(() => {
+                            window.location.href = "/listagem_partidas";
+                        }, 1500);
+                    } else {
+                        mensagemDiv.style.color = "red";
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                const mensagemDiv = document.getElementById('mensagem');
+                mensagemDiv.style.display = "block";
+                mensagemDiv.textContent = "Ocorreu um erro. Tente novamente.";
+                mensagemDiv.style.color = "red";
+            });
+        });
+    </script>
+</body>
+</html>
