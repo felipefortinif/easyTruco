@@ -29,6 +29,10 @@ def listagem_partidas():
 def index():
     return render_template('cadastro.html')
 
+@app.route('/login')
+def login():
+    return render_template('login.html')
+
 @app.route('/cadastrar_usuario', methods=['POST'])
 def criaUsuario():
     session = Session()
