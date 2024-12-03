@@ -18,4 +18,4 @@ class Partida(Base):
         self.organizador = organizador
         self.local = local
         self.horario = horario
-        self.jogadores = "{'jogadores': [%s]}"%organizador 
+        self.jogadores = organizador

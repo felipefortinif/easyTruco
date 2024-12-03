@@ -16,8 +16,9 @@
                 {% for partida in partidas %}
                     <li>
                         <strong>Local:</strong> {{ partida.local }}<br>
-                        <strong>Horário:</strong> {{ partida.horario }}<br>
-                        <strong>Organizador:</strong> {{ partida.organizador }}
+                        <strong>Horário:</strong> {{ partida.horario.strftime('%d/%m/%y, %H:%M') }}<br>
+                        <strong>Organizador:</strong> {{ partida.organizador }}<br>
+                        <strong>Jogadores:</strong> {{ partida.jogadores.split(',') | length }}/4<br>
                     </li>
                 {% endfor %}
             </ul>
