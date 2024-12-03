@@ -66,30 +66,41 @@ def cadastrar_partida():
     return render_template('cadastrar_partida.html')
 
 @app.post('/criaPartida')
-def criaPartida(form: PartidaSchema):
-
+def criaPartida():
     session = Session()
 
-    organizador = form.organizador
-    local = form.local
-    horario = form.horario
+    try:
+        organizador = request.form.get('organizador')
+        local = request.form.get('local')
+        horario_str = request.form.get('horario')
 
-    if not organizador or not local or not horario:
+        if not organizador or not local or not horario_str:
+            return jsonify({"mensagem": "Preencha todos os campos!"}), 400
+
+        # Converte o horário para datetime
+        try:
+            horario = datetime.fromisoformat(horario_str)
+        except ValueError:
+            return jsonify({"mensagem": "Formato de horário inválido!"}), 400
+
+        # Verifica se o horário está no passado
+        if horario < datetime.now():
+            return jsonify({"mensagem": "O horário da partida deve ser no futuro!"}), 400
+
+        # Cria uma nova partida
+        novaPartida = Partida(organizador=organizador, local=local, horario=horario)
+
+        session.add(novaPartida)
+        session.commit()
+
+        return jsonify({"mensagem": "Partida criada com sucesso!", "id": novaPartida.id}), 201
+
+    except Exception as e:
+        session.rollback()
+        return jsonify({"mensagem": f"Erro ao criar a partida: {str(e)}"}), 500
+
+    finally:
         session.close()
-        return jsonify({"mensagem": "Preencha todos os campos!"}), 400
-    
-    # Verifica se o horário está no passado
-    if horario < datetime.now():
-        session.close()
-        return jsonify({"mensagem": "O horário da partida deve ser no futuro!"}), 400
-
-    novaPartida = Partida(organizador=organizador, local=local, horario=horario)
-    
-    session.add(novaPartida)
-    session.commit()
-
-    session.close()
-    return jsonify({"mensagem": "Partida criada com sucesso!", "id": novaPartida.id}), 201
 
 def validarSenha(senha: str):
     if len(senha) < 8:
