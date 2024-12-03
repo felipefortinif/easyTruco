@@ -18,6 +18,11 @@
                 <label for="password">Senha:</label>
                 <input type="password" id="password" name="password" required>
             </div>
+            {% if mensagem %}
+            <div class="alert">
+                {{ mensagem }}
+            </div>
+            {% endif %}
             <button type="submit">Entrar</button>
         </form>
     </div>

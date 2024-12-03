@@ -55,3 +55,12 @@ button {
 button:hover {
     background-color: #0056b3;
 }
+
+.alert {
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}

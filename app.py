@@ -1,5 +1,5 @@
 from flask_openapi3 import OpenAPI, Info, Tag
-from flask import request, jsonify, redirect, Flask, render_template
+from flask import request, jsonify, redirect, Flask, render_template, flash
 from model.base import Base, Session, engine
 from model.partida import Partida
 from model.usuario import Usuario
@@ -29,9 +29,22 @@ def listagem_partidas():
 def index():
     return render_template('cadastro.html')
 
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    return render_template('login.html')
+    mensagem = None
+    if request.method == 'POST':
+        email = request.form.get('email')
+        senha = request.form.get('password')
+
+        session = Session()
+        usuario = session.query(Usuario).filter(Usuario.email == email).first()
+
+        if usuario and usuario.senha == senha:
+            return redirect('listagem_partidas')
+
+        else:
+            mensagem = 'Usuário ou senha inválidos!'  
+    return render_template('login.html', mensagem=mensagem)
 
 @app.route('/cadastrar_usuario', methods=['POST'])
 def criaUsuario():
