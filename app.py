@@ -1,5 +1,5 @@
 from flask_openapi3 import OpenAPI, Info, Tag
-from flask import request, jsonify, redirect
+from flask import request, jsonify, redirect, Flask, render_template
 from model.base import Base, Session, engine
 from model.partida import Partida
 from model.usuario import Usuario
@@ -16,6 +16,46 @@ app = OpenAPI(__name__, info=info)
 @app.get('/')
 def hello():
     return 'Olá, Mundo!'
+
+@app.route('/listagem_partidas')
+def listagem_partidas():
+    return 'listagem_partidas.html'
+
+@app.route('/cadastro')
+def index():
+    return render_template('cadastro.html')
+
+@app.route('/cadastrar_usuario', methods=['POST'])
+def criaUsuario():
+    session = Session()
+
+    try:
+        nome = request.form.get('nome')
+        email = request.form.get('email')
+        senha = request.form.get('senha')
+
+        if not nome or not email or not senha:
+            return jsonify({"mensagem": "Preencha todos os campos!"}), 400
+
+        if session.query(Usuario).filter(Usuario.email == email).first():
+            return jsonify({"mensagem": "Este email já está cadastrado!"}), 400
+
+        if not validarSenha(senha):
+            return jsonify({"mensagem": "Senha deve ter pelo menos 8 caracteres e conter letras e números!"}), 400
+
+        novoUsuario = Usuario(nome=nome, email=email, senha=senha)
+
+        session.add(novoUsuario)
+        session.commit()
+
+        return jsonify({"mensagem": "Usuário criado com sucesso!", "id": novoUsuario.id}), 201
+
+    except Exception as e:
+        session.rollback()
+        return jsonify({"mensagem": f"Erro ao criar o usuário: {str(e)}"}), 500
+
+    finally:
+        session.close()
 
 @app.post('/criaPartida')
 def criaPartida(form: PartidaSchema):
@@ -42,37 +82,6 @@ def criaPartida(form: PartidaSchema):
 
     session.close()
     return jsonify({"mensagem": "Partida criada com sucesso!", "id": novaPartida.id}), 201
-
-@app.post('/criaUsuario')
-def criaUsuario(form: UsuarioSchema):
-
-    session = Session()
-
-    nome = form.nome
-    email = form.email
-    senha = str(form.senha)
-
-    if not nome or not email or not senha:
-        session.close()
-        return jsonify({"mensagem": "Preencha todos os campos!"}), 400
-    
-    emailExiste = session.query(Usuario).filter(Usuario.email == email).first() is not None
-    if emailExiste:
-        session.close()
-        return jsonify({"mensagem": "Este email já está cadastrado!"}), 400
-    
-    ehSenhaValida = validarSenha(senha)
-    if not ehSenhaValida:
-        session.close()
-        return jsonify({"mensagem": "Senha inválida! Deve conter pelo menos 8 caracteres, letras e números!"}), 400
-
-    novoUsuario = Usuario(nome=nome, email=email, senha=senha)
-    
-    session.add(novoUsuario)
-    session.commit()
-
-    session.close()
-    return jsonify({"mensagem": "Usuário criado com sucesso!", "id": novoUsuario.id}), 201
 
 def validarSenha(senha: str):
     if len(senha) < 8:
