@@ -14,8 +14,8 @@ info = Info(title="EasyTruco API", version="1.0.0")
 app = OpenAPI(__name__, info=info)
 
 @app.get('/')
-def hello():
-    return 'Olá, Mundo!'
+def home():
+    return render_template('index.html')
 
 @app.route('/listagem_partidas')
 def listagem_partidas():
