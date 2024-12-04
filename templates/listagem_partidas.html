@@ -11,6 +11,16 @@
         <h1>Easy Truco</h1>
         <h2>Listagem de Partidas</h2>
 
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul>
+                    {% for category, message in messages %}
+                        <li class="{{ category }}">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
         {% if partidas %}
             <ul>
                 {% for partida in partidas %}
@@ -19,6 +29,22 @@
                         <strong>Horário:</strong> {{ partida.horario.strftime('%d/%m/%y, %H:%M') }}<br>
                         <strong>Organizador:</strong> {{ partida.organizador }}<br>
                         <strong>Jogadores:</strong> {{ partida.jogadores.split(',') | length }}/4<br>
+                        
+                        {% set jogadores = partida.jogadores.split(',') %}
+                        
+                        {% if '1' in jogadores %}
+                            <form action="/sair_partida/{{ partida.id }}" method="POST">
+                                <button type="submit">Sair da Partida</button>
+                            </form>
+                        {% else %}
+                            {% if partida.jogadores.split(',') | length < 4 %}
+                                <form action="/entrar_partida/{{ partida.id }}" method="POST">
+                                    <button type="submit">Juntar-se à Partida</button>
+                                </form>
+                            {% else %}
+                                <p>Partida cheia!</p>
+                            {% endif %}
+                        {% endif %}
                     </li>
                 {% endfor %}
             </ul>

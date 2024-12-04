@@ -1,5 +1,5 @@
 from flask_openapi3 import OpenAPI, Info, Tag
-from flask import request, jsonify, redirect, Flask, render_template, flash
+from flask import request, jsonify, redirect, Flask, render_template, url_for, flash
 from model.base import Base, Session, engine
 from model.partida import Partida
 from model.usuario import Usuario
@@ -13,6 +13,9 @@ Base.metadata.create_all(engine)
 info = Info(title="EasyTruco API", version="1.0.0")
 app = OpenAPI(__name__, info=info)
 
+# Configuração da chave secreta para usar flash e sessões
+app.config['SECRET_KEY'] = 'CHAVE_FLASH_REDIRECIONAR'
+
 @app.get('/')
 def home():
     return render_template('index.html')
@@ -20,10 +23,11 @@ def home():
 @app.route('/listagem_partidas')
 def listagem_partidas():
     session = Session()
+    usuario_id = 1
     partidas = session.query(Partida).all()
     session.close()
 
-    return render_template('listagem_partidas.html', partidas=partidas)
+    return render_template('listagem_partidas.html', partidas=partidas, usuario_id=usuario_id)
 
 @app.route('/cadastro')
 def index():
@@ -115,6 +119,84 @@ def criaPartida():
     except Exception as e:
         session.rollback()
         return jsonify({"mensagem": f"Erro ao criar a partida: {str(e)}"}), 500
+
+    finally:
+        session.close()
+
+@app.route('/entrar_partida/<int:id>', methods=['POST'])
+def entrar_partida(id):
+    session = Session()
+
+    try:
+        # Obtém o usuário que está tentando entrar
+        usuario_id = 1  # Aqui você pode pegar o id do usuário logado, por exemplo
+
+        # Busca a partida pelo ID
+        partida = session.query(Partida).filter(Partida.id == id).first()
+
+        if not partida:
+            flash("Partida não encontrada!", "error")
+            return redirect(url_for('listagem_partidas'))
+
+        # Verifica se a partida tem vagas (menos de 4 jogadores)
+        jogadores = partida.jogadores.split(',')
+        if len(jogadores) >= 4:
+            flash("Partida cheia!", "error")
+            return redirect(url_for('listagem_partidas'))
+
+        # Adiciona o usuário à lista de jogadores
+        jogadores.append(str(usuario_id))  # Adiciona o id do jogador à lista
+        partida.jogadores = ','.join(jogadores)  # Atualiza a lista de jogadores
+
+        # Commit na transação
+        session.commit()
+
+        flash("Você entrou na partida com sucesso!", "success")
+        return redirect(url_for('listagem_partidas'))
+
+    except Exception as e:
+        session.rollback()
+        flash(f"Erro ao entrar na partida: {str(e)}", "error")
+        return redirect(url_for('listagem_partidas'))
+
+    finally:
+        session.close()
+
+@app.route('/sair_partida/<int:id>', methods=['POST'])
+def sair_partida(id):
+    session = Session()
+
+    try:
+        # Obtém o usuário que está tentando sair
+        usuario_id = 1  # Aqui você pode pegar o id do usuário logado, por exemplo
+
+        # Busca a partida pelo ID
+        partida = session.query(Partida).filter(Partida.id == id).first()
+
+        if not partida:
+            flash("Partida não encontrada!", "error")
+            return redirect(url_for('listagem_partidas'))
+
+        # Verifica se o usuário está na partida
+        jogadores = partida.jogadores.split(',')
+        if str(usuario_id) not in jogadores:
+            flash("Você não está na partida!", "info")
+            return redirect(url_for('listagem_partidas'))
+
+        # Remove o jogador da lista
+        jogadores = [j for j in jogadores if j != str(usuario_id)]
+        partida.jogadores = ','.join(jogadores)  # Atualiza a lista de jogadores
+
+        # Commit na transação
+        session.commit()
+
+        flash("Você saiu da partida com sucesso!", "success")
+        return redirect(url_for('listagem_partidas'))
+
+    except Exception as e:
+        session.rollback()
+        flash(f"Erro ao sair da partida: {str(e)}", "error")
+        return redirect(url_for('listagem_partidas'))
 
     finally:
         session.close()
